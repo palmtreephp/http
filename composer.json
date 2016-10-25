@@ -2,7 +2,7 @@
     "name": "palmtree/http",
     "description": "HTTP component for Palmtree PHP",
     "type": "library",
-    "license": "GPL2",
+    "license": "MIT",
     "authors": [
         {
             "name": "andyexeter",
