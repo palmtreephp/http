@@ -14,7 +14,6 @@ class Curl {
 
 	public static $defaults = [
 		'curlOpts' => [
-			CURLOPT_HEADER         => false,
 			CURLOPT_FOLLOWLOCATION => true,
 			CURLOPT_AUTOREFERER    => true,
 			CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.28 Safari/534.10',
@@ -43,13 +42,28 @@ class Curl {
 		return $args;
 	}
 
+	protected function parseResponse() {
+		curl_setopt( $this->handle, CURLOPT_HEADER, true );
+		curl_setopt( $this->handle, CURLOPT_RETURNTRANSFER, true );
+
+		$response = curl_exec( $this->handle );
+
+		list( $headers, $body ) = explode( "\r\n\r\n", $response, 2 );
+
+		foreach ( explode( "\r\n", $headers ) as $header ) {
+			$pair = explode( ': ', $header, 2 );
+
+			if ( isset( $pair[1] ) ) {
+				$this->headers[ $pair[0] ] = $pair[1];
+			}
+		}
+
+		$this->contents = $body;
+	}
+
 	public function getHeaders() {
 		if ( $this->headers === null ) {
-			curl_setopt( $this->handle, CURLOPT_HEADER, true );
-			curl_setopt( $this->handle, CURLOPT_NOBODY, true );
-			curl_setopt( $this->handle, CURLOPT_RETURNTRANSFER, true );
-
-			$this->headers = curl_exec( $this->handle );
+			$this->parseResponse();
 		}
 
 		return $this->headers;
@@ -57,14 +71,7 @@ class Curl {
 
 	public function getContents() {
 		if ( $this->contents === null ) {
-			// @todo: Parse headers into an array so we don't need to make two requests to get content and headers.
-			curl_setopt( $this->handle, CURLOPT_RETURNTRANSFER, true );
-
-			$contents = curl_exec( $this->handle );
-
-			if ( $this->isOk() ) {
-				$this->contents = $contents;
-			}
+			$this->parseResponse();
 		}
 
 		return $this->contents;
