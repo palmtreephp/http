@@ -2,21 +2,23 @@
 
 namespace Palmtree\Http;
 
-class Curl {
-	protected $handle;
-	protected $url;
-	protected $curlOpts = [];
+use Palmtree\ArgParser\ArgParser;
 
+class Curl {
+	protected $url;
+
+	protected $handle;
 	protected $httpStatus;
 	protected $headers;
 	protected $contents;
 
-	public static $curlOptDefaults = [
-		CURLOPT_SSL_VERIFYHOST => false,
-		CURLOPT_SSL_VERIFYPEER => false,
-		CURLOPT_HEADER         => false,
-		CURLOPT_AUTOREFERER    => true,
-		CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.28 Safari/534.10',
+	public static $defaults = [
+		'curlOpts' => [
+			CURLOPT_HEADER         => false,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_AUTOREFERER    => true,
+			CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.10 (KHTML, like Gecko) Chrome/8.0.552.28 Safari/534.10',
+		],
 	];
 
 	const HTTP_NOT_FOUND = 404;
@@ -24,22 +26,21 @@ class Curl {
 	const HTTP_OK_MAX = 299;
 
 	public function __construct( $args = [] ) {
-		$curlOpts = self::$curlOptDefaults;
-		if ( is_array( $args ) ) {
-			if ( isset( $args['curlOpts'] ) ) {
-				foreach ( $args['curlOpts'] as $key => $value ) {
-					$curlOpts[ $key ] = $value;
-				}
-			}
-		} else if ( is_string( $args ) ) {
-			$this->setUrl( $args );
-		}
+		$this->args = $this->parseArgs( $args );
 
 		$this->handle = curl_init( $this->getUrl() );
 
-		$this->curlOpts = $curlOpts;
+		curl_setopt_array( $this->handle, $this->args['curlOpts'] );
+	}
 
-		curl_setopt_array( $this->handle, $this->curlOpts );
+	public function parseArgs( $args ) {
+		$parser = new ArgParser( $args, 'url' );
+
+		$parser->parseSetters( $this );
+
+		$args = $parser->resolveOptions( static::$defaults );
+
+		return $args;
 	}
 
 	public function getHeaders() {
@@ -56,7 +57,7 @@ class Curl {
 
 	public function getContents() {
 		if ( $this->contents === null ) {
-			// @todo: Parse headers into an array so we don't need to make to requests to get content and headers.
+			// @todo: Parse headers into an array so we don't need to make two requests to get content and headers.
 			curl_setopt( $this->handle, CURLOPT_RETURNTRANSFER, true );
 
 			$contents = curl_exec( $this->handle );
