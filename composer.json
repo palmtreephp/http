@@ -1,20 +1,18 @@
 {
-    "name": "palmtree/http",
-    "description": "HTTP component for Palmtree PHP",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "andyexeter",
-            "email": "palmer.andy@gmail.com"
-        }
-    ],
-    "require": {
-        "palmtree/argparser": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "Palmtree\\Http\\": ""
-        }
+  "name": "palmtree/http",
+  "description": "HTTP component for Palmtree PHP",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Andy Palmer",
+      "email": "andy@andypalmer.me",
+      "homepage": "https://andypalmer.me"
     }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Palmtree\\Http\\": ""
+    }
+  }
 }
